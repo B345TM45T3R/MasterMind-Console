@@ -10,7 +10,7 @@ namespace MasterMind___Console
 {
     class Program
     {
-        const int WIDTH = 92;
+        const int WIDTH = 100; // Legacy Console width was 92
         const ConsoleColor DEFAULT_TITLE_FONT_COL = ConsoleColor.Cyan;
         const ConsoleColor DEFAULT_TITLE_BACK_COL = ConsoleColor.DarkCyan;
         const string title = "Master Mind for the Console - created by B34STM4ST3R";
@@ -23,15 +23,8 @@ namespace MasterMind___Console
             try
             {
                 Console.SetWindowPosition(0, 0);
-                Console.WindowHeight = Console.LargestWindowHeight;
-            }
-            catch
-            { }
-
-            try
-            {
+                Console.SetWindowSize(WIDTH, (int)(Console.LargestWindowHeight * 0.85));
                 Console.SetBufferSize(WIDTH, 300);
-                Console.WindowWidth = WIDTH;           
             }
             catch
             {
@@ -52,6 +45,20 @@ namespace MasterMind___Console
             }
             
             PrintTitleCentred(GenerateTitle("Welcome to Master Mind", height: 5, borderCorner: "=", borderVert: ""));
+
+            StringBuilder legacyArrow = new StringBuilder();
+            for (int x = 0; x < 90; x++)
+            {
+                legacyArrow.Append("-");
+            }
+            legacyArrow.Append(">|");
+
+            Console.WriteLine(legacyArrow);
+
+            Console.WriteLine();
+            Console.WriteLine(CenterText("The Legacy Console's width was set to 92 characters (shown by the arrow above)\n\n"));
+            Console.WriteLine(CenterText("If you resize the Console Window width, the headings may be disrupted (or wrap)..."));
+            Console.WriteLine(CenterText("They will be corrected next time the screen is redrawn.\n\n"));
             Idle("proceed");
             MainMenu();
         }
@@ -374,7 +381,7 @@ namespace MasterMind___Console
             Console.WriteLine(CenterText("Number of incorrect pegs. An Incorrect peg is a peg in your code which is the wrong colour"));
             Console.WriteLine("\n");
             PrintTitleCentred(GenerateTitle("That's all for now..."), ConsoleColor.Gray, ConsoleColor.DarkGray);
-            Console.WriteLine(CenterText("Mess around with the game, experiment... and you'll soon figure out what's cooking!"));
+            Console.WriteLine(CenterText("Play around with the game, experiment... and you'll soon figure out what's cooking!"));
             Console.WriteLine("\n");
             Idle();
         }
@@ -382,13 +389,16 @@ namespace MasterMind___Console
         //DECORATIVE FUNCTIONS
         static void PrintTitleCentred(string[] text, ConsoleColor fontColour = DEFAULT_TITLE_FONT_COL, ConsoleColor backgroundColour = DEFAULT_TITLE_BACK_COL)
         {
+            // Auto-Width
+            int width = Console.WindowWidth;
+
             Console.WriteLine();
 
             //Save colours
             ConsoleColor tempFont = Console.ForegroundColor;
             ConsoleColor tempBack = Console.BackgroundColor;
 
-            if (text[0].Length == WIDTH)
+            if (text[0].Length == width)
             {
                 //Apply new colouring
                 Console.ForegroundColor = fontColour;
@@ -430,77 +440,89 @@ namespace MasterMind___Console
         }
 
         
-        static string[] GenerateTitle(string text, string borderCorner = "+", string borderVert = "|", string borderHoriz = "=", int width = WIDTH, int height = 3)
+        static string[] GenerateTitle(string text, string borderCorner = "+", string borderVert = "|", string borderHoriz = "=", int width = 0, int height = 3)
         {
+            // Clamp/overwrite arbitrary heights
             if (height != 3 && height != 5) height = 3;
 
-            string[] titleBuilder = new string[height];
+            // Auto-Width
+            if (width == 0) width = Console.WindowWidth;
+
+            StringBuilder[] titleBuilder = new StringBuilder[height];
             for (int x = 0; x < height; x = x + 1)
             {
-                titleBuilder[x] = "";
+                titleBuilder[x] = new StringBuilder();
+                titleBuilder[x].Clear();
             }
 
             int pos = 0;
             
             //First Line          
-            titleBuilder[pos] += borderCorner;
+            titleBuilder[pos].Append(borderCorner);
             for (int x = 1, n = width - (2 * borderCorner.Length); x <= n; x = x + 1)
             {
-                titleBuilder[pos] += borderHoriz[0];
+                titleBuilder[pos].Append(borderHoriz[0]);
             }
-            titleBuilder[pos] += borderCorner;
+            titleBuilder[pos].Append(borderCorner);
 
             //Second Line
             if (height == 5)
             {
                 pos++;
-                titleBuilder[pos] += borderVert;
+                titleBuilder[pos].Append(borderVert);
                 for (int x = 1, n = (width - (2 * borderVert.Length)); x <= n; x = x + 1)
                 {
-                    titleBuilder[pos] += " ";
+                    titleBuilder[pos].Append(" ");
                 }
-                titleBuilder[pos] += borderVert;
+                titleBuilder[pos].Append(borderVert);
             }
 
             //Middle Line
             pos++;
-            titleBuilder[pos] += borderVert;
+            titleBuilder[pos].Append(borderVert);
 
             int buffer = (width - (2 * borderVert.Length) - text.Length) / 2;            
             for (int x = 1; x <= buffer; x = x + 1)
             {
-                titleBuilder[pos] += " ";
+                titleBuilder[pos].Append(" ");
             }
-            titleBuilder[pos] += text.ToUpper();
+            titleBuilder[pos].Append(text.ToUpper());
 
             for (int x = 1, n = (width - (2 * borderVert.Length) - buffer - text.Length); x <= n; x = x + 1)
             {
-                titleBuilder[pos] += " ";
+                titleBuilder[pos].Append(" ");
             }
-            titleBuilder[pos] += borderVert;
+            titleBuilder[pos].Append(borderVert);
 
             //Second-Last Line
             if (height == 5)
             {
                 pos++;
-                titleBuilder[pos] += borderVert;
+                titleBuilder[pos].Append(borderVert);
                 for (int x = 1, n = (width - (2 * borderVert.Length)); x <= n; x = x + 1)
                 {
-                    titleBuilder[pos] += " ";
+                    titleBuilder[pos].Append(" ");
                 }
-                titleBuilder[pos] += borderVert;
+                titleBuilder[pos].Append(borderVert);
             }
 
             //Last Line
             pos++;
-            titleBuilder[pos] += borderCorner;
+            titleBuilder[pos].Append(borderCorner);
             for (int x = 1, n = width - (2 * borderCorner.Length); x <= n; x = x + 1)
             {
-                titleBuilder[pos] += borderHoriz[0];
+                titleBuilder[pos].Append(borderHoriz[0]);
             }
-            titleBuilder[pos] += borderCorner;
+            titleBuilder[pos].Append(borderCorner);
 
-            return titleBuilder;
+            // Convert to strings
+            string[] titleStrings = new string[height];
+            for (int x = 0; x < height; x = x + 1)
+            {
+                titleStrings[x] = titleBuilder[x].ToString();
+            }
+
+            return titleStrings;
         }
 
         static void Idle(string action = "continue")
@@ -513,8 +535,9 @@ namespace MasterMind___Console
 
         static string CenterText(string text)
         {
+            int width = Console.WindowWidth;
             int textLength = text.Length;
-            for (int x = 1, n = (WIDTH - textLength) / 2; x <= n; x = x + 1)
+            for (int x = 1, n = (width - textLength) / 2; x <= n; x = x + 1)
             {
                 text = " " + text;
             }
