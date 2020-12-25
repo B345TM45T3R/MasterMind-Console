@@ -11,13 +11,15 @@ namespace MasterMind___Console
         private int[] code;
         private static Random random = new Random();
 
-        public Code(int CodeLength, int NumColours)
+        public Code(int CodeLength, int NumColours, bool allowBlanks)
         {
+            int lowerBound = (allowBlanks) ? -1 : 0;
+
             code = new int[CodeLength];
             if (NumColours < 10)
                 for (int x = 0; x< CodeLength; x++)
                 {
-                    code[x] = random.Next(-1, NumColours);
+                    code[x] = random.Next(lowerBound, NumColours);
                     // For all non-blank (i.e. not -1), add 1 to get 1-based, not 0-based index
                     if (code[x] != -1)
                     {
@@ -27,7 +29,7 @@ namespace MasterMind___Console
             else
                 for (int x = 0; x < CodeLength; x++)
                 {
-                    code[x] = random.Next(-1, NumColours); 
+                    code[x] = random.Next(lowerBound, NumColours); 
                     // 0 is the 10th colour, so don't need the + 1 offset
                 }
         }

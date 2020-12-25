@@ -13,23 +13,28 @@ namespace MasterMind___Console
         private int NumTurns;
         private int BlockHeight;
         private int NumberColours;
+        private bool AllowBlanks;
         private Code[] PegMap;
         private string[] ScoreMap;
         private bool solved;
         private int turn;
 
+        private bool warned;
+        private int messageLength;
+
         //Constructor
-        public GameManager(int CodeLength = 4, int NumTurns = 10, int BlockHeight = 2, int NumberColours = 8)
+        public GameManager(int CodeLength = 4, int NumTurns = 10, int BlockHeight = 2, int NumberColours = 8, bool AllowBlanks = true)
         {
             this.CodeLength = CodeLength;
             this.NumTurns = NumTurns;
             this.BlockHeight = BlockHeight;
+            this.AllowBlanks = AllowBlanks;
             if (NumberColours<=10)
                 this.NumberColours = NumberColours;
             else
                 this.NumberColours = 10;
             PegMap = new Code[NumTurns+1];
-            PegMap[0] = new Code(CodeLength, NumberColours);
+            PegMap[0] = new Code(CodeLength, NumberColours, AllowBlanks);
             for (int x = 1; x<=NumTurns; x = x + 1)
             {
                 PegMap[x] = new Code(CodeLength);
@@ -255,22 +260,52 @@ namespace MasterMind___Console
         //END OF GET METHODS
 
 
-        private void PrintCode(int[] codeBuilder, bool first = false)
+        private void PrintCode(int[] codeBuilder, bool first = false, string message = "")
         {
+            int numCharactersMakingUpCode = (codeBuilder.Length - 1) * ((BlockHeight * 2) + 1);
+
             if (!first)
             {
-                // Erase what is currently there up to the first "|"
-                int numCharacters = (codeBuilder.Length - 1) * ((BlockHeight * 2) + 1);
-                for (int x = 1; x <= numCharacters; x++)
+                // Erase previous message if necessary
+                if (messageLength != 0)
                 {
+                    // Resize window to at least fit all on one line to prevent backspace bug if line wraps
+                    if (Console.WindowWidth < numCharactersMakingUpCode + messageLength)
+                    {
+                        // for the:          '|'+          code             +     message   + some extra
+                        Console.WindowWidth = 1 + numCharactersMakingUpCode + messageLength + 2;
+                    }
+
+                    for (int x = 1; x <= messageLength; x++)
+                    {
+                        // https://stackoverflow.com/a/5195807
+                        Console.Write("\b \b");
+                    }
+                }
+
+                // Erase what is currently there up to the first "|"
+                for (int x = 1; x <= numCharactersMakingUpCode; x++)
+                {
+                    // Doesn't overwrite existing chars on backspace, only on forward pass again - reduces flicker
                     Console.Write("\b");
                 }
             }
 
-            // Print new one
+            // Print the new one
             for (int index = 1; index < codeBuilder.Length; index++)
             {
                 WriteColourBlock(codeBuilder[index], (codeBuilder[0] == index));
+            }
+
+            // Print message
+            if (message != "")
+            {
+                messageLength = 2 + message.Length;
+                Console.Write("  " + message);
+            }
+            else
+            {
+                messageLength = 0;
             }
         }
 
@@ -332,14 +367,29 @@ namespace MasterMind___Console
             Console.Write("|");
 
             // Print the initial code for this turn
+            messageLength = 0;
             PrintCode(codeBuilder, true);
-            
-            
+
+            // Intialize Warned
+            warned = false;
             
             bool repeat = true;
             while (repeat)
             {
-                switch (Console.ReadKey(true).Key)
+                ConsoleKey pressedKey = Console.ReadKey(true).Key;
+                
+                // Update warned status
+                switch (pressedKey)
+                {
+                    case ConsoleKey.Enter:
+                        break;
+                    default:
+                        warned = false;
+                        break;
+                }
+
+                // Actual key press logic
+                switch (pressedKey)
                 {
                     //0-9 Colour entry controls
                     case ConsoleKey.D0:
@@ -420,12 +470,30 @@ namespace MasterMind___Console
                     //Enter - Submit Code for marking (if the code length is correct)
                     case ConsoleKey.Enter:
                         // Check if blanks are allowed, if not ensure code is complete (EXTRA FEATURE - TO DO)
-                        if (true)
+                        bool proceed = true;
+                        if (!AllowBlanks && !warned)
+                        {
+                            for (int index = 1; index < codeBuilder.Length; index++)
+                            {
+                                if (codeBuilder[index] == -1)
+                                {
+                                    proceed = false;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (proceed)
                         {
                             turn += 1;
                             repeat = false;
                             PegMap[NumTurns + 2 - turn].SubmitCode(codeBuilder);
                             MarkAttempt(codeBuilder);
+                        }
+                        else
+                        {
+                            warned = true;
+                            PrintCode(codeBuilder, false, "You leaving blanks? <Enter to confirm>");
                         }
                         break;
                 }

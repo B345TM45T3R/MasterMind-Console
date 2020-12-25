@@ -23,7 +23,7 @@ namespace MasterMind___Console
             try
             {
                 Console.SetWindowPosition(0, 0);
-                Console.SetWindowSize(WIDTH, (int)(Console.LargestWindowHeight * 0.85));
+                Console.SetWindowSize(WIDTH, (int)(Console.LargestWindowHeight * 0.95));
                 Console.SetBufferSize(WIDTH, 300);
             }
             catch
@@ -66,8 +66,8 @@ namespace MasterMind___Console
         //Main Menu
         static void MainMenu()
         {
-            string[] AutoSave = new string[4];
-            for (int x = 0; x < 4; x = x + 1)
+            string[] AutoSave = new string[5];
+            for (int x = 0; x < 5; x = x + 1)
             {
                 AutoSave[x] = "???";
             }
@@ -106,13 +106,14 @@ namespace MasterMind___Console
         //Game Setup
         static GameManager SetGameSettings(string[] saves)
         {
-            string customLength, customTurns, customSize, customColours;
+            string customLength, customTurns, customSize, customColours, customAllowBlanks;
             bool Repeat = true;
             bool Default = true;
             customLength = saves[0];
             customTurns = saves[1];
             customSize = saves[2];
             customColours = saves[3];
+            customAllowBlanks = saves[4];
 
             while (Repeat)
             {
@@ -122,7 +123,7 @@ namespace MasterMind___Console
                 PrintTitleCentred(GenerateTitle("1   Traditional Rules   1", width: 31), ConsoleColor.Yellow, ConsoleColor.DarkYellow);
                 PrintGameSettings();
                 PrintTitleCentred(GenerateTitle("2   Saved Custom Game   2", width: 31), ConsoleColor.Green, ConsoleColor.DarkGreen);
-                PrintGameSettings(customLength, customTurns, customColours, customSize);
+                PrintGameSettings(customLength, customTurns, customColours, customSize, customAllowBlanks);
                 Console.WriteLine(CenterText("<press 3 to setup new custom game>"));
 
                 switch (Console.ReadKey(true).KeyChar)
@@ -145,11 +146,11 @@ namespace MasterMind___Console
                         Console.Clear();
                         PrintTitleCentred(GenerateTitle("Game Preferences - Custom Game Setup", height: 5, borderCorner: "=", borderVert: ""));
                         Console.WriteLine("\n");                        
-                        SelectPreferences(out customLength, out customTurns, out customColours, out customSize);
+                        SelectPreferences(out customLength, out customTurns, out customColours, out customSize, out customAllowBlanks);
                         Console.WriteLine("\n");
                         PrintTitleCentred(GenerateTitle("Game Preferences", height: 5, borderCorner: "=", borderVert: ""),ConsoleColor.White,ConsoleColor.DarkGray);
                         PrintTitleCentred(GenerateTitle("       Custom Game       ", width: 30), ConsoleColor.Green, ConsoleColor.DarkGreen);
-                        PrintGameSettings(customLength, customTurns, customColours, customSize);
+                        PrintGameSettings(customLength, customTurns, customColours, customSize, customAllowBlanks);
                         Console.WriteLine("\n");
                         Console.WriteLine(CenterText("Are you happy with the above settings? Press ENTER to start the game"));
                         Console.WriteLine(CenterText("Press any other key to restart game setup\n\n\n\n\n\n\n\n\n\n"));
@@ -166,6 +167,7 @@ namespace MasterMind___Console
                                 customTurns = saves[1];
                                 customSize = saves[2];
                                 customColours = saves[3];
+                                customAllowBlanks = saves[4];
                                 break;                           
                         }
                         break;
@@ -182,30 +184,54 @@ namespace MasterMind___Console
                 saves[1] = customTurns;
                 saves[2] = customSize;
                 saves[3] = customColours;
-                GameManager GM = new GameManager(int.Parse(customLength), int.Parse(customTurns), int.Parse(customSize), int.Parse(customColours));
+                saves[4] = customAllowBlanks;
+                GameManager GM = new GameManager(int.Parse(customLength), int.Parse(customTurns), int.Parse(customSize), int.Parse(customColours), customAllowBlanks.ToUpper() == "YES");
                 return GM;
             }
         }
 
         //Receive preferences from User (And verify correct input)
-        static void SelectPreferences(out string customLength, out string customTurns, out string customColours, out string customSize)
+        static void SelectPreferences(out string customLength, out string customTurns, out string customColours, out string customSize, out string customAllowBlanks)
         {
             Console.CursorVisible = true;
             //Code Length
             PrintTitleCentred(GenerateTitle("Code Length", width: 30), ConsoleColor.White, ConsoleColor.DarkGray);
-            Console.WriteLine(CenterText("Please enter a number from 2 to 14"));
+            Console.WriteLine(CenterText("Please enter a code length: from 2 to 14"));
             customLength = GetValidNumber(2,14);
 
             //Turns
             PrintTitleCentred(GenerateTitle("Number of Turns allowed", width: 30), ConsoleColor.Yellow, ConsoleColor.DarkYellow);
-            Console.WriteLine(CenterText("Please enter a number from 5 to 30"));
+            Console.WriteLine(CenterText("Please enter a turn limit: from 5 to 30"));
             Console.WriteLine(CenterText("Recommended maximum: 23 turns"));
             customTurns = GetValidNumber(5, 30);
 
             //Number Colours
             PrintTitleCentred(GenerateTitle("Number of Peg colours", width: 30), ConsoleColor.Green, ConsoleColor.DarkGreen);
-            Console.WriteLine(CenterText("Please enter a number from 2 to 10"));
+            Console.WriteLine(CenterText("Please enter the number of peg colours to use: from 2 to 10"));
             customColours = GetValidNumber(2, 10);
+
+            //Blanks allowed
+            PrintTitleCentred(GenerateTitle("May the Code contain blanks?", width: 30), ConsoleColor.Magenta, ConsoleColor.DarkMagenta);
+            Console.WriteLine(CenterText("Please enter Y [Yes] or N [No]"));
+            bool loopBlanks = true;
+            customAllowBlanks = "No";
+            while (loopBlanks)
+            {
+                switch (Console.ReadKey(true).Key)
+                {
+                    case ConsoleKey.Y:
+                        customAllowBlanks = "Yes";
+                        loopBlanks = false;
+                        break;
+                    case ConsoleKey.N:
+                        customAllowBlanks = "No";
+                        loopBlanks = false;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            Console.WriteLine(customAllowBlanks);
 
             //Size of Board
             PrintTitleCentred(GenerateTitle("Board Display size", width: 30), ConsoleColor.Cyan, ConsoleColor.DarkCyan);
@@ -253,13 +279,13 @@ namespace MasterMind___Console
                     {
                         case '1':
                             temp = "1";
-                            Console.WriteLine("1");
+                            Console.WriteLine("Tiny");
                             Repeat = false;
                             break;
 
                         case '2':
                             temp = "2";
-                            Console.WriteLine("2");
+                            Console.WriteLine("Big");
                             Repeat = false;
                             break;
 
@@ -267,7 +293,7 @@ namespace MasterMind___Console
                             if (int.Parse(customLength) < 9)
                             {
                                 temp = "3";
-                                Console.WriteLine("3");
+                                Console.WriteLine("Huge");
                                 Repeat = false;
                             }                               
                             break;
@@ -296,12 +322,13 @@ namespace MasterMind___Console
         }
 
         //Print selected settings
-        static void PrintGameSettings(string CodeLength = "4", string NumTurns = "10", string NumberColours = "8", string BlockHeight = "2")
+        static void PrintGameSettings(string CodeLength = "4", string NumTurns = "10", string NumberColours = "8", string BlockHeight = "2", string AllowBlanks = "Yes")
         {
                              
-            Console.WriteLine(CenterText("Code Length:        " + AlignValue(CodeLength)));
-            Console.WriteLine(CenterText("Max. Turns allowed: " + AlignValue(NumTurns)));
-            Console.WriteLine(CenterText("Available Colours:  " + AlignValue(NumberColours)));
+            Console.WriteLine(CenterText("Code Length:             " + AlignValue(CodeLength)));
+            Console.WriteLine(CenterText("Max. Turns allowed:      " + AlignValue(NumTurns)));
+            Console.WriteLine(CenterText("Available Colours:       " + AlignValue(NumberColours)));
+            Console.WriteLine(CenterText("Code may include Blanks: " + AlignValue(AllowBlanks.ToString())));
             if (BlockHeight.Equals("1"))
                 BlockHeight = "Tiny";
             else if (BlockHeight.Equals("2"))
@@ -309,7 +336,7 @@ namespace MasterMind___Console
             else if (BlockHeight.Equals("3"))
                 BlockHeight = "Huge";
 
-            Console.WriteLine(CenterText("Draw the Board:     " + AlignValue(BlockHeight)));
+            Console.WriteLine(CenterText("Draw the Board:          " + AlignValue(BlockHeight)));
             Console.WriteLine();
             Console.WriteLine();
         }
@@ -371,19 +398,47 @@ namespace MasterMind___Console
             PrintTitleCentred(GenerateTitle("How to Play (Concise/Incomplete)", height: 5, borderCorner: "=", borderVert: ""));
             PrintTitleCentred(GenerateTitle("Objective: Crack the code within the set number of turns"), ConsoleColor.Green, ConsoleColor.DarkGreen);
             PrintTitleCentred(GenerateTitle("The Scoring System", width: 30), ConsoleColor.Yellow, ConsoleColor.DarkYellow);
-            PrintTitleCentred(GenerateTitle("# Exact", width: 15, borderHoriz: "-"), ConsoleColor.White, ConsoleColor.DarkGray);
-            Console.WriteLine(CenterText("Number of exact matches. An Exact match is where a peg in your code"));
-            Console.WriteLine(CenterText("is the correct colour and in the correct position"));
-            PrintTitleCentred(GenerateTitle("# Partial", width: 15, borderHoriz: "-"), ConsoleColor.White, ConsoleColor.DarkGray);
-            Console.WriteLine(CenterText("Number of partial matches. A Partial match is where a peg in your code"));
-            Console.WriteLine(CenterText("is the correct colour but in the incorrect position"));
-            PrintTitleCentred(GenerateTitle("# Incorrect", width: 15, borderHoriz: "-"), ConsoleColor.White, ConsoleColor.DarkGray);
-            Console.WriteLine(CenterText("Number of incorrect pegs. An Incorrect peg is a peg in your code which is the wrong colour"));
+            Console.WriteLine(CenterText("The scoring of your attempt is done in the following order: "));
             Console.WriteLine("\n");
-            PrintTitleCentred(GenerateTitle("That's all for now..."), ConsoleColor.Gray, ConsoleColor.DarkGray);
-            Console.WriteLine(CenterText("Play around with the game, experiment... and you'll soon figure out what's cooking!"));
+            Console.WriteLine(CenterText("1st:  # EXACT"));
+            Console.WriteLine(CenterText("==============="));
+            Console.WriteLine();
+            Console.WriteLine(CenterText("'Exact' matches are identified first. An Exact match is where a peg"));
+            Console.WriteLine(CenterText("in your code is the correct colour and in the correct position.    "));
             Console.WriteLine("\n");
-            Idle();
+            Console.WriteLine(CenterText("2nd:  # PARTIAL"));
+            Console.WriteLine(CenterText("================="));
+            Console.WriteLine();
+            Console.WriteLine(CenterText("The remaining pegs are checked against the code for 'Partial' matches.   "));
+            Console.WriteLine(CenterText("A Partial match is where a peg in your code matches one of the remaining "));
+            Console.WriteLine(CenterText("pegs in the hidden code on colour but is in the incorrect position.      "));
+            Console.WriteLine("\n");
+            Console.WriteLine(CenterText("3rd:  # INCORRECT"));
+            Console.WriteLine(CenterText("==================="));
+            Console.WriteLine();
+            Console.WriteLine(CenterText("Any pegs left over at this point are 'Incorrect'.                   "));
+            Console.WriteLine(CenterText("An Incorrect peg is a peg in your code which is the wrong 'colour'. "));
+            Console.WriteLine("\n");
+            PrintTitleCentred(GenerateTitle("The Controls: The Keys", width: 30), ConsoleColor.Yellow, ConsoleColor.DarkYellow);
+            Console.WriteLine(CenterText("+----+    +----+"));
+            Console.WriteLine(CenterText("| <- |    | -> |"));
+            Console.WriteLine(CenterText("+----+    +----+"));
+            Console.WriteLine(CenterText("Use the Arrow keys to move the current peg selection box ([ ])."));
+            Console.WriteLine("\n");
+            Console.WriteLine(CenterText("+---+ +---+ +---+"));
+            Console.WriteLine(CenterText("| 1 | | 2 | | 3 |"));
+            Console.WriteLine(CenterText("+---+ +---+ +---+"));
+            Console.WriteLine(CenterText("Use the Number keys to select/change the Colour for the selected [ ] peg."));
+            Console.WriteLine(CenterText("(The range depends on number of colours used in the game settings)"));
+            Console.WriteLine("\n");
+            Console.WriteLine(CenterText("+--------+    +-----------+"));
+            Console.WriteLine(CenterText("| Delete |    | Backspace |"));
+            Console.WriteLine(CenterText("+--------+    +-----------+"));
+            Console.WriteLine(CenterText("Use Delete or Backspace to remove the selected [ ] peg -- make it 'blank' again."));
+            Console.WriteLine("");
+
+            PrintTitleCentred(GenerateTitle("Play around with the game, experiment... and you'll soon figure out what's cooking!"), ConsoleColor.DarkGreen, ConsoleColor.Green);
+            Idle("return to the main menu");
         }
         
         //DECORATIVE FUNCTIONS
