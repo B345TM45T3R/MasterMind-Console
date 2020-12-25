@@ -17,12 +17,18 @@ namespace MasterMind___Console
             if (NumColours < 10)
                 for (int x = 0; x< CodeLength; x++)
                 {
-                    code[x] = random.Next(1, NumColours + 1);
+                    code[x] = random.Next(-1, NumColours);
+                    // For all non-blank (i.e. not -1), add 1 to get 1-based, not 0-based index
+                    if (code[x] != -1)
+                    {
+                        code[x] += 1;
+                    }
                 }
             else
                 for (int x = 0; x < CodeLength; x++)
                 {
-                    code[x] = random.Next(0, NumColours);
+                    code[x] = random.Next(-1, NumColours); 
+                    // 0 is the 10th colour, so don't need the + 1 offset
                 }
         }
 
@@ -35,11 +41,12 @@ namespace MasterMind___Console
             }
         }
 
-        public void SubmitCode(string attempt)
+        public void SubmitCode(int[] attemptBuilder)
         {
-            for (int x = 0; x < attempt.Length; x++)
+            //Convert from codeBuilder [1-indexed] to Code [0-indexed]
+            for (int x = 1; x < attemptBuilder.Length; x++) // ignore first element - was the selected/active peg
             {
-                code[x] = int.Parse(attempt.Substring(x,1));
+                code[x-1] = attemptBuilder[x];
             }
         }
 

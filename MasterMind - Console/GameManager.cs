@@ -157,6 +157,9 @@ namespace MasterMind___Console
         {
             switch (PegColorNumber)
             {
+                case -1:
+                    Console.BackgroundColor = ConsoleColor.Black;
+                    break;
                 case 1:
                     Console.BackgroundColor = ConsoleColor.DarkGray;
                     break;
@@ -197,7 +200,9 @@ namespace MasterMind___Console
         public void ShowPegColours()
         {
             Console.WriteLine("\nPeg Colour Palette:");
-            Console.Write("==================\n|");
+            Console.WriteLine("==================");
+            Console.Write("|");
+            // Print Peg colours 1 to 9
             for (int x = 1; x <= NumberColours; x = x + 1)
             {
                 if (x < 10)
@@ -210,6 +215,7 @@ namespace MasterMind___Console
                     Console.Write("|");
                 }
             }
+            // Print Peg colour 0 (i.e. 10)
             if (NumberColours == 10)
             {
                 Console.ForegroundColor = ConsoleColor.Black;
@@ -219,6 +225,13 @@ namespace MasterMind___Console
                 ChangeBackground();
                 Console.Write("|");
             }
+            // Print Delete/Blank peg
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            ChangeBackground(-1);
+            Console.Write(" DEL ");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            ChangeBackground();
+            Console.Write("|");
             Console.WriteLine("\n");
         }
 
@@ -242,74 +255,172 @@ namespace MasterMind___Console
         //END OF GET METHODS
 
 
-        //INPUT CONTROL
+        private void PrintCode(int[] codeBuilder, bool first = false)
+        {
+            if (!first)
+            {
+                // Erase what is currently there up to the first "|"
+                int numCharacters = (codeBuilder.Length - 1) * ((BlockHeight * 2) + 1);
+                for (int x = 1; x <= numCharacters; x++)
+                {
+                    Console.Write("\b");
+                }
+            }
+
+            // Print new one
+            for (int index = 1; index < codeBuilder.Length; index++)
+            {
+                WriteColourBlock(codeBuilder[index], (codeBuilder[0] == index));
+            }
+        }
+
+        //Writes a colour block to the Console (Does not validate for allowed colour!)
+        private void WriteColourBlock(int colRef, bool active = false)
+        {
+            ChangeBackground(colRef);
+            // Change foreground - Prevent black foreground and background
+            Console.ForegroundColor = (colRef == -1) ? ConsoleColor.Gray : ConsoleColor.Black;
+
+            // First char of block
+            Console.Write((active)? "[" : " ");
+
+            // Middle chars of block
+            for (int x = 2; x < BlockHeight * 2; x = x + 1)
+            {
+                Console.Write(" ");
+            }
+
+            // Last char of block
+            Console.Write((active) ? "]" : " ");
+
+            // Reset foreground to default
+            Console.ForegroundColor = ConsoleColor.Gray;
+
+            ChangeBackground();
+            Console.Write("|");
+        }
+
+
+        private void UpdateCodeBuilderColour(int changeToColour, int[] codeBuilder)
+        {
+            // Validate - check new peg is in number of colour range
+            if (changeToColour == -1 ||
+               (changeToColour <= NumberColours && changeToColour != 0 && NumberColours < 10) ||
+               (changeToColour <= NumberColours && NumberColours == 10))
+            {
+                // Make the change
+                codeBuilder[codeBuilder[0]] = changeToColour;
+                // Re-print on screen
+                PrintCode(codeBuilder);
+            }
+            // Else no change
+        }
+
+        // INPUT CONTROL
         public void EnterAndSubmitCode()
         {
-            Console.CursorVisible = true;
+            // Intialize Code building Manager
+            int[] codeBuilder = new int[CodeLength + 1]; // codeBuilder[0] holds the (1-based) index of the currently selected peg
+            codeBuilder[0] = 1;
+            for (int x = 1; x <= CodeLength; x++)
+            {
+                codeBuilder[x] = -1;
+            }
+
+            // Inital Console Setup
+            Console.CursorVisible = false;
             Console.Write("|");
-            string codeBuilder = "";
+
+            // Print the initial code for this turn
+            PrintCode(codeBuilder, true);
+            
+            
+            
             bool repeat = true;
             while (repeat)
             {
-                switch (Console.ReadKey(true).KeyChar)
+                switch (Console.ReadKey(true).Key)
                 {
                     //0-9 Colour entry controls
-                    case '0':
-                        TypeColours(0, ref codeBuilder);
+                    case ConsoleKey.D0:
+                    case ConsoleKey.NumPad0:
+                        UpdateCodeBuilderColour(0, codeBuilder);
                         break;
 
-                    case '1':
-                        TypeColours(1, ref codeBuilder);
+                    case ConsoleKey.D1:
+                    case ConsoleKey.NumPad1:
+                        UpdateCodeBuilderColour(1, codeBuilder);
                         break;
 
-                    case '2':
-                        TypeColours(2, ref codeBuilder);
-                        break;
-                    case '3':
-                        TypeColours(3, ref codeBuilder);
+                    case ConsoleKey.D2:
+                    case ConsoleKey.NumPad2:
+                        UpdateCodeBuilderColour(2, codeBuilder);
                         break;
 
-                    case '4':
-                        TypeColours(4, ref codeBuilder);
+                    case ConsoleKey.D3:
+                    case ConsoleKey.NumPad3:
+                        UpdateCodeBuilderColour(3, codeBuilder);
                         break;
 
-                    case '5':
-                        TypeColours(5, ref codeBuilder);
+                    case ConsoleKey.D4:
+                    case ConsoleKey.NumPad4:
+                        UpdateCodeBuilderColour(4, codeBuilder);
                         break;
 
-                    case '6':
-                        TypeColours(6, ref codeBuilder);
+                    case ConsoleKey.D5:
+                    case ConsoleKey.NumPad5:
+                        UpdateCodeBuilderColour(5, codeBuilder);
                         break;
 
-                    case '7':
-                        TypeColours(7, ref codeBuilder);
+                    case ConsoleKey.D6:
+                    case ConsoleKey.NumPad6:
+                        UpdateCodeBuilderColour(6, codeBuilder);
                         break;
 
-                    case '8':
-                        TypeColours(8, ref codeBuilder);
+                    case ConsoleKey.D7:
+                    case ConsoleKey.NumPad7:
+                        UpdateCodeBuilderColour(7, codeBuilder);
                         break;
 
-                    case '9':
-                        TypeColours(9, ref codeBuilder);
+                    case ConsoleKey.D8:
+                    case ConsoleKey.NumPad8:
+                        UpdateCodeBuilderColour(8, codeBuilder);
+                        break;
+
+                    case ConsoleKey.D9:
+                    case ConsoleKey.NumPad9:
+                        UpdateCodeBuilderColour(9, codeBuilder);
+                        break;
+                    
+                    //Left - Move active cell one left (if not at start of the code)
+                    case ConsoleKey.LeftArrow:
+                        if (codeBuilder[0] > 1) // remember index 1 is left-most code value
+                        {
+                            codeBuilder[0]--;
+                            PrintCode(codeBuilder);
+                        }
+                        break;
+
+                    //Right - Move active cell one right (if not at end of the code)
+                    case ConsoleKey.RightArrow:
+                        if (codeBuilder[0] < CodeLength) // remember index CodeLength is right-most code value (1-based)
+                        {
+                            codeBuilder[0]++;
+                            PrintCode(codeBuilder);
+                        }
                         break;
 
                     //Backspace - Delete Colour
-                    case (char)ConsoleKey.Backspace:
-                        if (codeBuilder.Length !=0)
-                        for (int x = 1; x <= 3; x = x + 1)
-                        {
-                            for (int y = 1; y <= BlockHeight * 2 + 1; y = y + 1)
-                            {
-                                if (x == 2) Console.Write(" ");
-                                else Console.Write("\b");
-                            }
-                        }
-                        if(codeBuilder.Length >= 1) codeBuilder = codeBuilder.Remove(codeBuilder.Length-1,1);
+                    case ConsoleKey.Backspace:
+                    //Delete - Delete currently selected (if not at start of the code)
+                    case ConsoleKey.Delete:
+                        UpdateCodeBuilderColour(-1, codeBuilder);
                         break;
 
                     //Enter - Submit Code for marking (if the code length is correct)
-                    case (char)ConsoleKey.Enter:
-                        if (codeBuilder.Length == CodeLength)
+                    case ConsoleKey.Enter:
+                        // Check if blanks are allowed, if not ensure code is complete (EXTRA FEATURE - TO DO)
+                        if (true)
                         {
                             turn += 1;
                             repeat = false;
@@ -321,15 +432,25 @@ namespace MasterMind___Console
             }  
         }
 
-        private void MarkAttempt(string attempt)
-        {
-                                                                                                          // ½ 00BD
-            //Set up the three strings used in Manipulation (string attempt is supplied as parameter)          
+        private void MarkAttempt(int[] attemptBuilder)
+        {                                                                                                          // ½ 00BD
+            //Set up the three strings used in Manipulation          
             string scoreBuilder = "";
+            string attempt = "";
             string answer = "";
+
+            // Convert answer [] to a string
             for (int x = 0; x < CodeLength; x = x + 1)
             {
-                answer += PegMap[0].GetCode()[x];
+                int val = PegMap[0].GetCode()[x];
+                answer += (val == -1) ? "_" : val.ToString();
+            }
+
+            // Convert attemptBuilder [] to String
+            for (int x = 1; x <= CodeLength; x = x + 1)
+            {
+                int val = attemptBuilder[x];
+                attempt += (val == -1) ? "_" : val.ToString();
             }
 
             //Initialize counters
@@ -398,20 +519,6 @@ namespace MasterMind___Console
 
             //Submit Final Score
             ScoreMap[NumTurns + 2 - turn] = scoreBuilder;
-        }
-
-        //Validating and printing Colour key presses
-        private void TypeColours(int colRef, ref string codeBuilder)
-        {
-            if (codeBuilder.Length < CodeLength && ((NumberColours >= colRef && (colRef != 0 && NumberColours < 10)) || (NumberColours >= colRef && NumberColours == 10)))
-            {
-                ChangeBackground(colRef);
-                for (int x = 1; x <= BlockHeight*2; x = x + 1)
-                    Console.Write(" ");
-                codeBuilder += colRef;
-                ChangeBackground();
-                Console.Write("|");
-            }
         }
 
     }

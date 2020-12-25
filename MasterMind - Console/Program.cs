@@ -326,7 +326,7 @@ namespace MasterMind___Console
                 GM.ShowPegColours();
                 if (GM.GetTurn() <= n)
                 {                
-                    Heading1("Turn " + GM.GetTurn() + ":");
+                    PrintTurnHeading("Turn " + GM.GetTurn() + ":");
                     GM.EnterAndSubmitCode();
                     if (GM.GetSolved()) break;
                 }                
@@ -354,7 +354,7 @@ namespace MasterMind___Console
             Idle("return to the main menu");
         }
 
-        static void Heading1(string text)
+        static void PrintTurnHeading(string text)
         {
             Console.WriteLine(text);
             for (int x = 1, n = text.Length; x <= n; x = x + 1)
