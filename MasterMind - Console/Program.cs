@@ -10,15 +10,15 @@ namespace MasterMind___Console
 {
     class Program
     {
-        const int WIDTH = 100; // Legacy Console width was 92
+        const int WIDTH = 120; // Legacy Console width was 92
         const ConsoleColor DEFAULT_TITLE_FONT_COL = ConsoleColor.Cyan;
         const ConsoleColor DEFAULT_TITLE_BACK_COL = ConsoleColor.DarkCyan;
-        const string title = "Master Mind for the Console - created by B34STM4ST3R";
+        const string title = "Master Mind for the Console - created by Geoffrey Olls";
 
         //Main
         static void Main(string[] args)
         {           
-            Console.Title = "MasterMind for the Command Line Terminal";
+            Console.Title = "Master Mind for the Command Line Terminal";
 
             try
             {
